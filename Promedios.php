@@ -37,40 +37,59 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <?php
-                  $_SESSION['id_estudiante']=null;
-                   include('conexion.php');
-                   
-                   $sql = "SELECT * FROM estudiantes";
-                   $consulta = $conexion->prepare($sql);
-                   $consulta->execute();
-                   
-                   $estudiantes = array();
-                   
-                   if ($consulta->rowCount() > 0) {
-                       while ($registro = $consulta->fetch(PDO::FETCH_ASSOC)) {
-                           $sql2 = "SELECT AVG(calificacion) as Promedio FROM calificacion where id_estudiante=:id";
-                           $consulta2 = $conexion->prepare($sql2);
-                           $consulta2->bindParam(':id', $registro['id']);
-                           $consulta2->execute();
-                   
-                           if ($consulta2->rowCount() > 0) {
-                               while ($registro2 = $consulta2->fetch(PDO::FETCH_ASSOC)) {
-                                $Promedio=$registro2['Promedio'];
-                                   $Promedio = number_format($Promedio, 2);
-                                   echo "
-                               <tr>
-                                   <td>$registro[nombre]</td>
-                                   <td>$registro[apellidos]</td>
-                                   <td>$registro[id]</td>
-                                   <td>$Promedio</td>
-                               </tr>
-                           ";
-                               }
-                           }
-                       }
-                   }
-                   ?>
+                <?php
+                      $_SESSION['id_estudiante'] = null;
+                      include('conexion.php');
+
+                      $sql = "SELECT * FROM estudiantes";
+                      $consulta = $conexion->prepare($sql);
+                      $consulta->execute();
+
+                      $estudiantes = array();
+
+                      if ($consulta->rowCount() > 0) {
+                          while ($registro = $consulta->fetch(PDO::FETCH_ASSOC)) {
+                              $sql2 = "SELECT AVG(calificacion) as Promedio FROM calificacion WHERE id_estudiante=:id";
+                              $consulta2 = $conexion->prepare($sql2);
+                              $consulta2->bindParam(':id', $registro['id']);
+                              $consulta2->execute();
+
+                              if ($consulta2->rowCount() > 0) {
+                                  while ($registro2 = $consulta2->fetch(PDO::FETCH_ASSOC)) {
+                                      $Promedio = $registro2['Promedio'];
+                                      $Promedio = number_format($Promedio, 2);
+
+                                      // Almacena los datos en un array asociativo
+                                      $estudiantes[] = array(
+                                          'nombre' => $registro['nombre'],
+                                          'apellidos' => $registro['apellidos'],
+                                          'id' => $registro['id'],
+                                          'promedio' => $Promedio,
+                                      );
+                                  }
+                              }
+                          }
+
+                          // Ordena el array en función del campo 'promedio' de menor a mayor
+                          usort($estudiantes, function ($a, $b) {
+                              return strcmp($a['promedio'], $b['promedio']);
+                          });
+
+                          // Imprime los resultados ordenados
+                          foreach ($estudiantes as $estudiante) {
+                              echo "
+                                  <tr>
+                                      <td>{$estudiante['nombre']}</td>
+                                      <td>{$estudiante['apellidos']}</td>
+                                      <td>{$estudiante['id']}</td>
+                                      <td>{$estudiante['promedio']}</td>
+                                  </tr>
+                              ";
+                          }
+                      }
+                      ?>
+
+
                    
                 </tbody>
               </table>
